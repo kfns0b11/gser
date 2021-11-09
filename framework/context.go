@@ -36,7 +36,7 @@ func (ctx *Context) WriterMux() *sync.Mutex {
 	return ctx.writerMux
 }
 
-func (ctx *Context) SetTimeout() {
+func (ctx *Context) SetHasTimeout() {
 	ctx.hasTimeout = true
 }
 
