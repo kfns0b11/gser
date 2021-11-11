@@ -119,13 +119,15 @@ func (tree *Tree) AddRouter(uri string, handler ControllerHandler) error {
 			}
 		}
 
-		if childNodes == nil {
+		if objNode == nil {
 			cnode := newNode()
 			cnode.segment = segment
 			if isLast {
 				cnode.isLast = true
 				cnode.handler = handler
 			}
+			n.childs = append(n.childs, cnode)
+			objNode = cnode
 		}
 		n = objNode
 	}
