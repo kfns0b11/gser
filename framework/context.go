@@ -20,6 +20,9 @@ type Context struct {
 	hasTimeout bool
 	// wirite protect
 	writerMux *sync.Mutex
+
+	handlers []ControllerHandler
+	index    int
 }
 
 func NewContext(rw http.ResponseWriter, r *http.Request) *Context {
@@ -27,7 +30,18 @@ func NewContext(rw http.ResponseWriter, r *http.Request) *Context {
 		request:        r,
 		responseWriter: rw,
 		writerMux:      &sync.Mutex{},
+		index:          -1,
 	}
+}
+
+func (ctx *Context) Next() error {
+	ctx.index++
+	if ctx.index < len(ctx.handlers) {
+		if err := ctx.handlers[ctx.index](ctx); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // #region implementing base method
@@ -38,6 +52,10 @@ func (ctx *Context) WriterMux() *sync.Mutex {
 
 func (ctx *Context) SetHasTimeout() {
 	ctx.hasTimeout = true
+}
+
+func (ctx *Context) SetHandlers(handlers []ControllerHandler) {
+	ctx.handlers = handlers
 }
 
 func (ctx *Context) HasTimeout() bool {
