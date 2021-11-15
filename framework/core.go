@@ -64,32 +64,32 @@ func (c *Core) Group(prefix string) IGroup {
 	return newGroup(c, prefix)
 }
 
-// find handler for path
-func (c *Core) FindRouteByRequest(req *http.Request) []ControllerHandler {
+func (c *Core) FindRouteNodeByRequest(req *http.Request) *node {
 	uri := req.URL.Path
 	method := req.Method
-	upperMethod := strings.ToUpper(method)
+	methodUpper := strings.ToUpper(method)
 
-	if methodHandlers, ok := c.router[upperMethod]; ok {
-		return methodHandlers.FindHandler(uri)
-
+	if methodHandlers, ok := c.router[methodUpper]; ok {
+		return methodHandlers.root.matchNode(uri)
 	}
 	return nil
 }
 
 func (c *Core) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	ctx := NewContext(rw, req)
-	handlers := c.FindRouteByRequest(req)
-
-	if len(handlers) == 0 {
-		_ = ctx.Json(404, "not found")
+	node := c.FindRouteNodeByRequest(req)
+	if node == nil {
+		ctx.SetStatus(404).Json("not found")
 		return
 	}
 
-	ctx.SetHandlers(handlers)
+	ctx.SetHandlers(node.handlers)
+
+	params := node.parseParamsFromEndNode(req.URL.Path)
+	ctx.SetParams(params)
 
 	if err := ctx.Next(); err != nil {
-		_ = ctx.Json(500, "inner error")
+		ctx.SetStatus(500).Json("inner error")
 		return
 	}
 }

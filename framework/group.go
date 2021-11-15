@@ -75,11 +75,3 @@ func (g *Group) getAbsolutePrefix() string {
 	}
 	return g.parent.getAbsolutePrefix() + g.prefix
 }
-
-func (g *Group) getMiddlewares() []ControllerHandler {
-	if g.parent == nil {
-		return g.middlewares
-	}
-
-	return append(g.parent.getMiddlewares(), g.middlewares...)
-}
