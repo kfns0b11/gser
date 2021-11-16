@@ -146,6 +146,7 @@ func (tree *Tree) AddRouter(uri string, handlers []ControllerHandler) error {
 		if objNode == nil {
 			cnode := newNode()
 			cnode.segment = segment
+			cnode.parent = n
 			if isLast {
 				cnode.isLast = true
 				cnode.handlers = handlers

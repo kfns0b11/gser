@@ -1,6 +1,7 @@
 package framework
 
 import (
+	"bytes"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
@@ -286,6 +287,7 @@ func (ctx *Context) BindJson(obj interface{}) error {
 		if err != nil {
 			return err
 		}
+		ctx.request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
 		err = json.Unmarshal(body, obj)
 		if err != nil {
@@ -303,6 +305,7 @@ func (ctx *Context) BindXml(obj interface{}) error {
 		if err != nil {
 			return err
 		}
+		ctx.request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
 		err = xml.Unmarshal(body, obj)
 		if err != nil {
@@ -321,6 +324,7 @@ func (ctx *Context) GetRawData() ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
+		ctx.request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
 		return body, nil
 	}
