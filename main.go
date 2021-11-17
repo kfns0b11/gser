@@ -9,14 +9,14 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/kfngp/gser/framework"
+	"github.com/kfngp/gser/framework/gin"
 	"github.com/kfngp/gser/framework/middleware"
 )
 
 func main() {
-	core := framework.NewCore()
+	core := gin.New()
+	core.Use(gin.Recovery())
 	core.Use(middleware.Cost())
-	core.Use(middleware.Recovery())
 
 	registerRouter(core)
 	server := &http.Server{
@@ -39,6 +39,6 @@ func main() {
 	}
 }
 
-func registerRouter(c *framework.Core) {
-	c.Get("/user/login", UserLoginConroller)
+func registerRouter(eg *gin.Engine) {
+	eg.GET("/user/login", UserLoginConroller)
 }
