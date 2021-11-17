@@ -4,19 +4,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/kfngp/gser/framework"
+	"github.com/kfngp/gser/framework/gin"
 )
 
-func Cost() framework.ControllerHandler {
-	return func(ctx *framework.Context) error {
+func Cost() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
 		start := time.Now()
 
 		ctx.Next() //nolint: errcheck
 
 		end := time.Now()
 		cost := end.Sub(start)
-		log.Printf("api uri: %v, cost: %v", ctx.GetRequest().RequestURI, cost.Seconds())
-
-		return nil
+		log.Printf("api uri: %v, cost: %v", ctx.Request.RequestURI, cost.Seconds())
 	}
 }

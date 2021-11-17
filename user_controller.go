@@ -1,8 +1,7 @@
 package main
 
-import "github.com/kfngp/gser/framework"
+import "github.com/kfngp/gser/framework/gin"
 
-func UserLoginConroller(ctx *framework.Context) error {
-	ctx.SetOkStatus().Json("ok, UserLoginContronller")
-	return nil
+func UserLoginConroller(ctx *gin.Context) {
+	ctx.ISetOkStatus().IJson("ok, UserLoginContronller")
 }
