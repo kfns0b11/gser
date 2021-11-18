@@ -15,6 +15,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/kfngp/gser/framework"
 	"github.com/kfngp/gser/framework/gin/internal/bytesconv"
 	"github.com/kfngp/gser/framework/gin/render"
 )
@@ -68,6 +69,9 @@ const (
 // Engine is the framework's instance, it contains the muxer, middleware and configuration settings.
 // Create an instance of Engine, by using New() or Default()
 type Engine struct {
+	// container is the center of service providers
+	container framework.Container
+
 	RouterGroup
 
 	// Enables automatic redirection if the current route can't be matched but a
@@ -162,6 +166,7 @@ var _ IRouter = &Engine{}
 func New() *Engine {
 	debugPrintWARNINGNew()
 	engine := &Engine{
+		container: framework.NewGserContainer(),
 		RouterGroup: RouterGroup{
 			Handlers: nil,
 			basePath: "/",
@@ -202,7 +207,7 @@ func Default() *Engine {
 func (engine *Engine) allocateContext() *Context {
 	v := make(Params, 0, engine.maxParams)
 	skippedNodes := make([]skippedNode, 0, engine.maxSections)
-	return &Context{engine: engine, params: &v, skippedNodes: &skippedNodes}
+	return &Context{engine: engine, params: &v, skippedNodes: &skippedNodes, container: engine.container}
 }
 
 // Delims sets template left and right delims and returns a Engine instance.
