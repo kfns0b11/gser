@@ -32,11 +32,11 @@ func NewGserContainer() *GserContainer {
 	}
 }
 
-func (cont *GserContainer) PrintProviders() []string {
-	cont.lock.RLock()
-	defer cont.lock.RUnlock()
+func (c *GserContainer) PrintProviders() []string {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
 	ret := []string{}
-	for _, provider := range cont.providers {
+	for _, provider := range c.providers {
 		name := provider.Name()
 		ret = append(ret, name)
 	}
@@ -45,72 +45,72 @@ func (cont *GserContainer) PrintProviders() []string {
 
 // #region *GserContainer implement Container interface
 
-func (cont *GserContainer) Bind(provider ServiceProvider) error {
-	cont.lock.Lock()
-	defer cont.lock.Unlock()
+func (c *GserContainer) Bind(provider ServiceProvider) error {
+	c.lock.Lock()
+	defer c.lock.Unlock()
 
 	key := provider.Name()
 
-	cont.providers[key] = provider
+	c.providers[key] = provider
 
 	if !provider.IsDefer() {
-		if err := provider.Boot(cont); err != nil {
+		if err := provider.Boot(c); err != nil {
 			return err
 		}
 
-		params := provider.Params(cont)
-		method := provider.Register(cont)
+		params := provider.Params(c)
+		method := provider.Register(c)
 		instance, err := method(params...)
 		if err != nil {
 			return err
 		}
-		cont.instances[key] = instance
+		c.instances[key] = instance
 	}
 
 	return nil
 }
 
-func (cont *GserContainer) IsBind(key string) bool {
-	return cont.findServiceProvider(key) != nil
+func (c *GserContainer) IsBind(key string) bool {
+	return c.findServiceProvider(key) != nil
 }
 
-func (cont *GserContainer) Make(key string) (interface{}, error) {
-	return cont.make(key, nil, false)
+func (c *GserContainer) Make(key string) (interface{}, error) {
+	return c.make(key, nil, false)
 }
 
-func (cont *GserContainer) MustMake(key string) interface{} {
-	ins, err := cont.make(key, nil, false)
+func (c *GserContainer) MustMake(key string) interface{} {
+	ins, err := c.make(key, nil, false)
 	if err != nil {
 		panic(err)
 	}
 	return ins
 }
 
-func (cont *GserContainer) MakeNew(key string, params []interface{}) (interface{}, error) {
-	return cont.make(key, params, true)
+func (c *GserContainer) MakeNew(key string, params []interface{}) (interface{}, error) {
+	return c.make(key, params, true)
 }
 
 // #endregion
 
-func (cont *GserContainer) findServiceProvider(key string) ServiceProvider {
-	cont.lock.RLock()
-	defer cont.lock.RUnlock()
-	if sp, ok := cont.providers[key]; ok {
+func (c *GserContainer) findServiceProvider(key string) ServiceProvider {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	if sp, ok := c.providers[key]; ok {
 		return sp
 	}
 	return nil
 }
 
-func (cont *GserContainer) newInstance(sp ServiceProvider, params []interface{}) (interface{}, error) {
-	if err := sp.Boot(cont); err != nil {
+func (c *GserContainer) newInstance(sp ServiceProvider, params []interface{}) (interface{}, error) {
+	if err := sp.Boot(c); err != nil {
 		return nil, err
 	}
 
-	if params == nil {
-		params = sp.Params(cont)
+	if len(params) == 0 {
+		params = sp.Params(c)
 	}
-	method := sp.Register(cont)
-	ins, err := method(params)
+	method := sp.Register(c)
+	ins, err := method(params...)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
@@ -118,27 +118,27 @@ func (cont *GserContainer) newInstance(sp ServiceProvider, params []interface{})
 	return ins, err
 }
 
-func (cont *GserContainer) make(key string, params []interface{}, forceNew bool) (interface{}, error) {
-	cont.lock.Lock()
-	defer cont.lock.Unlock()
+func (c *GserContainer) make(key string, params []interface{}, forceNew bool) (interface{}, error) {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
 
-	sp := cont.findServiceProvider(key)
+	sp := c.findServiceProvider(key)
 	if sp == nil {
 		return nil, errors.New("contract " + key + "have not register")
 	}
 
 	if forceNew {
-		return cont.newInstance(sp, params)
+		return c.newInstance(sp, params)
 	}
 
-	if ins, ok := cont.instances[key]; ok {
+	if ins, ok := c.instances[key]; ok {
 		return ins, nil
 	}
 
-	ins, err := cont.newInstance(sp, nil)
+	ins, err := c.newInstance(sp, nil)
 	if err != nil {
 		return nil, err
 	}
-	cont.instances[key] = ins
+	c.instances[key] = ins
 	return ins, nil
 }
