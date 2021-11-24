@@ -124,7 +124,7 @@ func (c *GserContainer) make(key string, params []interface{}, forceNew bool) (i
 
 	sp := c.findServiceProvider(key)
 	if sp == nil {
-		return nil, errors.New("contract " + key + "have not register")
+		return nil, errors.New("contract " + key + " have not register")
 	}
 
 	if forceNew {
